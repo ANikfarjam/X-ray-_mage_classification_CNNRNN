@@ -1,0 +1,4 @@
+nas_dir/
+.venv/
+__pycache__/
+Data/
