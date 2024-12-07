@@ -20,7 +20,7 @@ def augment_image(image_path):
     rotated_img2.save(image_path + "_rotated2.jpg")
     flipped_img.save(image_path + "_flipped.jpg")
     #now that created our validation files lets augment them
-validation_dir = './Data/validation'
+validation_dir = './Data/FractureData/validation'
 files_to_augment = [os.path.join(root, f) for root, _, files in os.walk(validation_dir) for f in files]
 with Pool() as pool:
   list(tqdm(pool.imap(augment_image, files_to_augment), total=len(files_to_augment), desc="Augmenting data", unit="file"))
