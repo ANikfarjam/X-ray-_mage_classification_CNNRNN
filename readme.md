@@ -7,26 +7,28 @@ Author: Ashkan Nikfarjam
 Collaborator: Vinhem Doung
 
 # Abstract
-Strong bones are the foundation of a healthy body. They protect organs and help muscles move. Therefore, it is crucial to maintain healthy bones. 
+Strong bones are the foundation of a healthy body. They protect our organs and help our muscles move. Therefore, it is crucial to maintain healthy bones.  There are 4 different types of bone fracture injuries; Greenstick, Transverse, Comminuted, Spiral and compound(Cleveland Clinic). Each has their own effect on human ability within athletes, adults and children.
+![alt text](./bones.png)
 
 # Introduction
-To assist practitioners with correct diagnosis, we aimed to use a CNN-RNN model to classify location of provided x-ray picture and whether it shows a fractured bone or a healthy one.  Qiwei Yin and et al, suggest that the CNN (Convolutional Neural Network) component processes images by filtering out non-essential information and retaining critical features, such as edges and shapes. The RNN (Recurrent Neural Network) component, specifically using bidirectional RNN structures like LSTM or GRU, then captures the dependencies and continuity in these features, enhancing the model's ability to analyze image sequences and improve classification accuracy.
+To assist practitioners with correct diagnosis, a CNN-RNN model is used to classify the location of the provided X-Ray picture and determine whether or not it shows a fractured bone or a non fractured one. 
+
+There are many approaches to this problem but Qiwei Yin and et al, suggested that CNN-RNN can over perform most of the other models by filtering out non-essential information and retaining critical features, such as edges and shapes and capturing the dependencies and continuity in these features. Thereby, enhancing the model's ability to analyze image sequences and improve classification accuracy.
 
 # Data Sources
 
-Our data is collected from Kaggle and Robofile. Our images consists of hands, forearms, knee, elbow, humerus, wrist, shoulders, legs, feet, hip, finger and vertebrae in the neck and back. 
+The data is collected from Kaggle and Robofile. The datasets used for this project consists of hands, forearms, knee, elbow, humerus, wrist, shoulders, legs, feet, hip, finger and vertebrae in the neck and back.
 
-For chest x-ray we only found data for classification of respiratory diseases. So we thought the damages done due to bone fracture in this area are so severe and instantly impactful that might need immediate medical attention. Thus we did not collect any data for this area. Also we were unable to find a concrete data for skull bones.
+It was challenging to find an image dataset for all the bones, especially there were challenges with finding data that was appropriately labeled. Additionally most of the chest x-ray data set was only available for classification of respiratory diseases, because it helps with inspecting internal organs of this region (John Hopkins Medicine). The damages done due to bone fracture in this area is also so severe that they might need immediate medical attention. This problem also occurred with skull datasets that we found. 
 
-Figure1: After some cleaning this figure shows the all the data that  has been collected and how the are structured.
 
 ![Figure1: Data Structure and Planning!](Conceptmap.jpeg)
 # Data Preprocessing
 
-With the help of the graph we made with Lucidchart we noticed that majority of our data is only split into train and test. Some datasets do not have a validation set. Therefore, in order to resolve this issue, we decide to create a validation dataset by using 20% of our training data. 
+This chart enhanced the understanding of data organization. As well as providing insight on how it has to be processed and redistributed. The majority of the dataset only contains train and test. Since there are enough pictures in some of the datasets it was decided to create validation datasets using 20% of training data.
 
-We had also calculate the number of the existing data we had and combine data accordingly. For examole we found a data set in FracAtlas consisted of x-ray picture of hand, hip, shoulder and legs. The data was raw and was organized by a csv index file into fractured and nonfractured for each part. 
-We wrote an script to see the number of extracted data to plan accordingly and here is what we found. 
+Some datasets consisted of mixed body part x-ray pictures. For instance our hands, shoulders, and legs had only a little data. Therefore, after a total headcount, they are distributed and combined with other datasets of their relative same bone. The csv index file helped a lot in utilizing a  script to see the number of extracted data to plan accordingly and here is what was found.
+
 ```
         Total Fractured Hand X-Rays: 379
         Total Non Fractured Hand X-Rays: 902
@@ -109,24 +111,15 @@ We wrote an script to see the number of extracted data to plan accordingly and h
 
 ```
 
-This analysis showed us that we do not have enough data to split into train, test and validation data. Comparing them to existing individual data sets we have, we decided to combine this data set with each individual datasets. We then added those contents into other folders and reorganized them into an even distribution of 60%, 20%, 20% respectively for Train, Test, Val datasets. In those files, we also have readme docs that showcase how many files there are, how it's organized and where it's derived from. 
-
+After these analyses, and combining them, data was evenly distributed in 60%, 20%, 20% respectively for Train, Test, Val datasets. 
 ### Ambiguous Datasets
 
-A big challenge we face was ambiguous datasets. Sometimes, wrist x-ray resemble a hand x-ray. We thought there is a possibility that wrist pictures gets mistakenly identified as hand. To double check, we have a data set for classifying whether the picture is a hand x-ray or not. We are going to create a base model to check that. If all the pictures gets classified as hand we might just combine them with hand and represent them as one class. 
+he x-ray pictures of some body parts were resembling other body parts. The main concern was parts such as hand, wrist and forearm getting classified mistakenly into the same category. Similar to legs and feet. To prevent this a base model was created to label hand x-rays and another one for legs. The goal behind this was, if they all get classified as hand similarly classified as leg, they could get combined.
 
-Just as hand and wrist dataset is ambiguous, we also noticed that legs and feet are ambiguous as well. Some pictures might be identified as feet and vice versa. Therefore, we must have a dataset for classifying whether the picture is a leg x-ray or not. We are going to use a second base model to check it. If all pictures are classified as legs, then we can just combine them into one class. 
-
-The worst case scenario for two ambiguous datasets, is to simply combine the two.
-
-### Wrist Data Set and how we need the hand base model.
-
-The wrist data set was an example of an ambiguous dataset. Often, the images contained either hand, forearm or both. This made it harder for us to distinguish which one is which, and whether or not we should treat it as a seperate bone. Therefore, we decided to run the hand base model against it. 
 
 ### Image Truncation
 
-We were running into a lot of truncated image errors during labeling some of our data using the base model we made for this task. We created a script that could verify truncation and repair truncated images by repairing the truncated part to black. After redownloading the data we ran the script and this is the result. Apparently truncation happened due to errors in compressing and transferring data. 
-
+Another challenging part of data preprocessing was dealing with truncated images. It was concluded that data extracted from Robofile was augmented to generate a data set.  This augmentation truncated some of our data. A python script was created to verify truncation and repair truncated images by setting the values of the truncated part to zero.
 
 ```
 eTrkImg.py 
@@ -200,10 +193,12 @@ CSV Data created for Neck and Spine
           
 ```
 
-One partner preprocessed and organized that data. After doing so, he transferred them into a usb drive. Sometimes, the transfers do not work and can get corrupted. Usually, for truncated images we either get nearly all of images are truncated or very few images are truncated.
+
 
 ### Steps of making base model for hand classification
-* Data Augmentation: Utilizing Keras image generator and applying rescale for normalization of pixel values and apply rotations and applying Fourier transformations for more accurate classification. And resize inside the img_fft function:
+* Data Augmentation: 
+
+For the hand base model a data set consisting of hand and other pictures was used. Utilizing Keras image generator and applying rescale for normalization of pixel values and applying rotations and applying the Fast Fourier Transformation was applied for more accurate classification. 
 
 ``` Python
 data_gen = ImageDataGenerator(
@@ -239,7 +234,10 @@ And this is the section we apply transformation:
 
 The reduction in the size was necessary, otherwise the Fourier Transformation makes the process computationally expensive. We were getting running out of resources error.
 
-* Create Test/Train/Validation dataset: ImageDataGenerator's folow_fron_directory() method, creates numpy array of our data, containing the frequency information, and its relative label.  
+* Create Test/Train/Validation dataset: 
+
+Creation of  test, train and validation datasets for hand base model, was done using ImageDataGenerator's flow_fron_directory() method, which creates a numpy array of data, containing the frequency information, and its relative label.
+ 
 
 ```Python
 # Ensure `target_size` matches your FFT resizing (128x128)
@@ -268,7 +266,6 @@ The reduction in the size was necessary, otherwise the Fourier Transformation ma
 ```
 
 
-# Model Selection
 
 Research shows strong performance of CNN-RNN model. However the complexity of these models arises during hyper parameter tuning. It is essential to use an appropriate architecture of neural network. In our case would be appropriate number of convolution, max pooling layers for CNN, and appropriate number of LSTM and number of layers in RNN. To come up with an optimal network structure NAS is utilized to help us to find optimal network architecture with optimal parameters.
 
@@ -289,7 +286,7 @@ NAS also trains the model, but with a unique twist: while a typical training pro
 
 ## Result of Base Model for Hand
 
-The Nas search for out hand base model, trained a CNN-RNN model that has test accuracy of 76.18% and loss of 48.7%.
+The hand base model NAS, trained a CNN-RNN model that has test accuracy of 76.18% and loss of 48.7%. 
 
 ![Hand base Model](./handBaseResut.png)
 
@@ -299,7 +296,10 @@ And these is the architecture of the hand base model
 
 ### Labeling Hands and Forearm Images
 
-Since we forgot to explicitly declare the model class indecies, I wrote this script to retuns class lables definition.
+Since we forgot to explicitly declare the model class indices, we wrote a script to return class labels definition. This script will label which is hand or forearm.
+
+
+
 ```Python
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
@@ -341,7 +341,7 @@ Label Definitions:
 
 ```
 
-After running hand base model on the hand and forearm data, it seems like they are all predicted to be hands! This means we are going to label all the pictures in this folder as hands and combine it with the existing hands. 
+After running our hand base model on the hand and forearm data, it seems like they are all predicted to be hands! This means we are going to label all the pictures in this folder as hands and combine it with the existing hands data set.
 
 ```
 $ python hand_FA_labels\ _summer.py 
@@ -378,11 +378,8 @@ Name: count, dtype: int64
 
 ```
 
-We also run our hand base model on wrists. They all got classified as hands!
+Running this script against the wrist dataset gave us the same result meaning the hand dataset shall be a mix of hands, wrist and forearms. The legs base model did a similar approach for feet. Therefore, legs and feet datasets were combined to the same category.
 
-This means our hand dataset shall be a mix of hands, wrist and forearms or vice versa.
-
-We created another another one for labling legs, and another one for classifying fractured non-fracture/
 
 # Main Model
 Yin's paper, proposes CNN, and a Bidirectional LSTM RNN model. 
@@ -443,10 +440,36 @@ Our Main Model Nas Trained a model with accuracy %88.5. With the following struc
 # performance of main model
 ![alt text](./mainmodelPerformanceVisuals.png)
 
-# Main Model
+Based upon the graphs, the main model did a pretty good job for classifying all body parts except for knees and spines Researches shows that this could happen because of Class Imbalance number of samples, which in our further investigation showed we had significantly unbalanced number of picture for these region compared to others. Poorly defined features was another reason showing up during research, in our implementation we used wavelet transformation that was improving the performance of the model. Noisy labels, which was possibly the main cause. We noticed we made a mistake in mapping our labels. As the code snippet shows we missed [0,6] and [1,6]. So a future improvement is fixing these labels and try to retrain our model with an even number of samples again and analyze the new performance matrices.
+
+```
+# Define custom labels
+labels = {
+    'hands/fractured': [1, 0],
+    'hands/non-fractured': [0, 0],
+    'elbow/fractured': [1, 1],
+    'elbow/non-fractured': [0, 1],
+    'humerus/fractured': [1, 2],
+    'humerus/non-fractured': [0, 2],
+    'shoulders/fractured': [1, 3],
+    'shoulders/non-fractured': [0, 3],
+    'legs/fractured': [1, 4],
+    'legs/non-fractured': [0, 4],
+    'hip/fractured': [1, 5],
+    'hip/non-fractured': [0, 5],
+    'knee/fractured': [1, 7],
+    'knee/non-fractured': [0, 7],
+    'spine/fractured': [1, 8],
+    'spine/non-fractured': [0, 8],
+    'forearm/fractured': [1, 9],
+    'forearm/non-fractured': [0, 9]
+}
+
+```
+
+# Main Model 
 [Click to watch on YouTube](https://youtu.be/7yxMjqB8peY)
 
-This graph indicates our model metricies. We can see that oevar our model did pretty good on the class classification, except for knee and spine category.
 
 
 # Comparing Performance of out Main model with 2 other models
@@ -454,37 +477,49 @@ This graph indicates our model metricies. We can see that oevar our model did pr
 ### CNN with NAS and hyperparameter tuning Result
 ![alt text](./FirstCNNTunerResult.png)
 
-We also developed a CNN with hyperparameter testing and NAS. This was done to improve our CNN model and get better results. This CNN, like the previous one, was a binary classifier to determine which bone is fractured or not. It consisted of similar lines as the traditional CNN with hyperparameter tuning. However, to be clear this new CNN model ran on data that was just a random 10% sample of our original data. We noticed that it received a much better test accuracy of 87% percent. This was a much a better improvement than our previous 51%.
+We trained a traditional CNN model with a feed forward network. We were curious how much using NAS can affect the performance, since we were learning about advantages of combining CNN and RNN. The nas search space was looking for the optimal number of Conv2D layer, Max Pooling layer, Batch normalization, Flatten layer, dense layer, and dropout layers.  During the implementation of this model However, only a random 10% samples were used  due to the huge amount of data that was obtained during data collection. We noticed that it received a much better test accuracy of 87% percent.  It is almost as good as our main model.
 
-After seeing the result we knew that running a NAS model would be far better for our main model than a traditional program. 
-
-### CNN
+### Traditional CNN
 ![alt text](./tCNN.png)
 
-We developed a traditional CNN to compare it's performance with our main model. The traditional CNN is a basic neural network that is built to compare the main model. The CNN consists of Conv2D, BatchNormalization, Flatten, Dropout, MaxPooling and Dense layers. The Dense layer at the end has a value of 1 and an activation function of sigmoid. Thereby, showcasing that it's a CNN for binary classification.
+This is a traditional CNN built to compare itself with the main model but without using NAS. The CNN consists of Conv2D, BatchNormalization, Flatten, Dropout, MaxPooling and Dense layers. The Dense layer at the end has a value of 1 and an activation function of sigmoid. Thereby, showcasing that it's a CNN for binary classification.
 
-Unfortunately, we ran our CNN on a large and diverse dataset and it only recieved an accuracy of 51.73 percent. Therefore, the CNN was an inferior model and it motivated us to find a better model to surpass it.
+Unfortunately, this CNN ran on a large and diverse dataset and it only received an accuracy of 51.73 percent. Therefore, this CNN was an inferior model and demonstrated that a traditional path is not the way forward.
+
 
 
 ### Random Forest Hyperparameter Testing Result
 ![alt text](./randomForestRandom.png)
 
-We ran a RandomSearchCV with a random forest classifier as our model. Our data was 10% of the main data we had, as our main data was too large for the RandomSearchCV. We chose random forest classifier as it pairs well with RandomSearchCV. Random Forest can handle diverse data. Random Forest is also less susceptible to overfitting. Therefore, it seemed like a perfect fit for our large and diverse data. 
+We ran a RandomSearchCV with a random forest classifier as our model. Our data was 10% of the main data we had, as our main data was too large for the RandomSearchCV. We chose a random forest classifier as it pairs well with RandomSearchCV. Random Forest can handle diverse data. Random Forest is also less susceptible to overfitting. Therefore, it seemed like a perfect fit for our large and diverse data.
 
-Before, we run our model, we had to process the data. We had to keep track of the labels, which ones were fractured and nonfractured. We also had to transform our images into integer arrays and resize them. After that, we split the data into 80% training and 20% test. We also created a validation set based around the 20% of the training set. 
+Before we ran our model, we had to process the data. We had to keep track of the labels, which ones were fractured and non fractured. We also had to transform our images into integer arrays and resize them. After that, we split the data into 80% training and 20% test. We also created a validation set based around the 20% of the training set.
+After that, we decided to input our values and set our parameters.  RandomForestClassifier was chosen for the reasons mentioned above. We also decided to choose RandomSearchCV as it was quicker than hyperparameter testing apps. Despite the fact that our dataset was only 10% of the original dataset. We still had to lower our parameters into the basic level. For example, the number of iterations we had to make was 10 and the number of folds for cross-validation was 3.
 
-After that, we decided to input our values and set our parameters. RandomForestClassifier was chosen for the reasons mentioned aboved. We also decided to choose RandomSearchCV as it was quicker than hyperparameter testing apps. Despite the fact, that our dataset was only 10% of the original dataset. We still had to lower our parameters into the basic level. For example, the number of iterations we had to make was 10 and the number of folds for cross-validation was 3. 
-
-After, running the model we were suprised by how accurate it was. It granted us a best score of 69% whilst, it granted us a test score of 77%, in contrast to the previous basic random forest classifier we had it was only around 64%.
-
-Therefore, we can ascertain that the Random Forest randomSearchCV model is efficient and possibly better than the CNN. However, it is not as good as our main model.
-
+After running the model we were surprised by how accurate it was. It granted us a best score of 69% whilst, it granted us a test score of 77%, in contrast to the previous basic random forest classifier we had it was only around 64%. Therefore, we can ascertain that the Random Forest randomSearchCV model is efficient and possibly better than the CNN. However, it is not as good as our main model.
 
 # Performance comparison
 ![performance](./finalGraph.png)
 
-Using plotly we graph these models perforamance to compare them to each other. It is evident that CNN model that we train with keras tuner is almost good as our model on acuracy. But musch more worst in loss scor. Thanks to the RNN component that made the prediction more accurate. 
+Using plotly we graph these models' performance to compare them to each other. It is evident that the CNN model that we train with keras tuner is almost as good as our main model on accuracy. However, the loss score was much worse. Thanks to the RNN component that made the prediction more accurate. The graph above shows the accuracy and loss improvement of our base model compared to the other ones. 
 
+
+# Project files structure and their functionalities:
+* CNNTunerColabRandom.py: CNN with NAS
+* Data Preprocessing: Contains all the scripts that redistributed the datasets
+* TraditionalCNNP2.py: Traditional CNN
+* crossForest.py: Random Forest Model with randomSearchCv
+* mainmodel.py: Trained and tested our main CNN-RNN model using keras tuner.
+*  Class_identifier.py: this script identifies the binary base models description.
+* handBaseModel.py: trains the base CNN-RNN model for labeling hand x-ray pictures.
+*  hand_FA_labels_semmery.py: a python script that makes a csv files of our hands and forearm labeling process.
+*  Hand_base_cnnrnn_desc.py: a python script to display layers of our hand base model.
+*  Label_fingers.py: script that labels fingers pictures using the hand's base model.
+* Label_hands.py: script that labels hands and forearm data set.
+* legsBaseModel.py: trains the base model for labeling leg and feed data set.
+* Main_model_desc.py: displays the layers of the best main CNN-RNN model.
+* mainModelVisuals.py:script that uses plotly to graph the performance comparison of all four models we used.
+* Wrist_lable.py: Labels wrist data set using hand’s base model.
 
 
 
