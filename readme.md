@@ -410,9 +410,9 @@ Yin's paper, proposes CNN, and a Bidirectional LSTM RNN model.
 
 2. Backward pass:
 
-   $$
-   S_{i,j}^B = f_{\text{REV}}(S_{i+1,j}^B, x_{i,j}), \quad \text{for } i = N, \ldots, 1
-   $$
+  $$
+    S_{i,j}^B = f_{\text{REV}}(S_{i+1,j}^B, x_{i,j}), \quad \text{for } i = N, \ldots, 1
+  $$
 
 ## Stages of setting NAS for our Base Model
  
