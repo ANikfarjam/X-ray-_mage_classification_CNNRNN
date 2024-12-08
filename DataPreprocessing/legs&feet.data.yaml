@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['0', '1']
+
+roboflow:
+  workspace: fracture-detection-0t1kh
+  project: obj-det-az0qd
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/fracture-detection-0t1kh/obj-det-az0qd/dataset/3
